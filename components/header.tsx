@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useCart } from '../app/context/CartContext';
+import { useCart } from '../context/CartContext';
 
 export default function Header({ title }: { title: string }) {
   const router = useRouter();

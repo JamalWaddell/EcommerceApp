@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react'; // Make sure useState is imported!
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { apiFetch } from '../../api-to-front/client';
 import Footer from '../../components/footer';
 import Header from '../../components/header';
-import { apiFetch } from '../api-to-front/client';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function OrdersScreen() {
   const { user, isLoggedIn, loading } = useAuth();

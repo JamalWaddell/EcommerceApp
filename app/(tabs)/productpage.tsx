@@ -1,9 +1,9 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { apiFetch } from '../../api-to-front/client';
 import Header from '../../components/header';
-import { apiFetch } from '../api-to-front/client';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../../context/CartContext';
 
 export default function ProductDetail() {
   const { id } = useLocalSearchParams();

@@ -1,9 +1,9 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { apiFetch } from '../../api-to-front/client';
 import Footer from '../../components/footer';
 import Header from '../../components/header';
-import { apiFetch } from '../api-to-front/client';
 
 export default function ProductListing() {
   const router = useRouter();

@@ -1,24 +1,24 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+import { AuthProvider } from '../context/AuthContext';
+import { CartProvider } from '../context/CartContext';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    // 1. AuthProvider must be on the OUTSIDE (because Cart needs useAuth)
+    <AuthProvider>
+      {/* 2. CartProvider must be inside AuthProvider */}
+      <CartProvider>
+        {/* 3. The Stack (your screens) must be inside both */}
+        <Stack screenOptions={{ headerShown: false }}>
+          {/* This automatically finds your index.tsx, cart.tsx, etc. */}
+          <Stack.Screen name="index" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="signup" />
+          <Stack.Screen name="orders" />
+          <Stack.Screen name="product/[id]" />
+        </Stack>
+      </CartProvider>
+    </AuthProvider>
   );
 }

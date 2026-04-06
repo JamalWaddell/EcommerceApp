@@ -1,9 +1,9 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { apiFetch } from '../../api-to-front/client';
 import Header from '../../components/header';
-import { apiFetch } from '../api-to-front/client';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../../context/CartContext';
 
 export default function CartScreen() {
   const { items, updateQuantity, removeItem, clear } = useCart();
