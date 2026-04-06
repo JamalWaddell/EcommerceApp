@@ -1,98 +1,108 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Footer from '../../components/footer';
+import Header from '../../components/header';
+import { apiFetch } from '../api-to-front/client';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function ProductListing() {
+  const router = useRouter();
+  const [products, setProducts] = useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
+  
+  // Filter States
+  const [category, setCategory] = useState('All');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [color, setColor] = useState('All');
 
-export default function HomeScreen() {
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [category, maxPrice, color, products]);
+
+  const loadProducts = async () => {
+    try {
+      const data = await apiFetch('/api/products');
+      setProducts(data);
+    } catch (e) { console.error(e); }
+  };
+
+  const applyFilters = () => {
+    let temp = [...products];
+    if (category !== 'All') temp = temp.filter(p => p.category === category);
+    if (color !== 'All') temp = temp.filter(p => p.colour === color);
+    if (maxPrice !== '') temp = temp.filter(p => p.price <= parseFloat(maxPrice));
+    setFilteredProducts(temp);
+  };
+
+  const resetFilters = () => {
+    setCategory('All');
+    setMaxPrice('');
+    setColor('All');
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <Header title="E-Store" />
+      
+      {/* Filters Section */}
+      <View style={styles.filterContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.row}>
+          {['All', 'Smartphone', 'Tablet', 'Laptop'].map(cat => (
+            <TouchableOpacity key={cat} onPress={() => setCategory(cat)} 
+              style={[styles.chip, category === cat && styles.activeChip]}>
+              <Text style={category === cat ? styles.whiteText : {}}>{cat}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        
+        <View style={styles.inputRow}>
+          <TextInput 
+            placeholder="Max Price" 
+            keyboardType="numeric" 
+            value={maxPrice}
+            onChangeText={setMaxPrice}
+            style={styles.input}
+          />
+          <TouchableOpacity onPress={resetFilters} style={styles.resetBtn}>
+            <Text style={{color: 'red'}}>Reset</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <FlatList 
+        data={filteredProducts}
+        numColumns={2}
+        keyExtractor={(item) => item._id}
+        ListFooterComponent={<Footer />}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.card} onPress={() => router.push(`../productpage/${item._id}`)}>
+            <Image source={{ uri: item.imageUrl }} style={styles.img} />
+            <Text style={styles.prodName}>{item.name}</Text>
+            <Text style={styles.prodPrice}>${item.price}</Text>
+            <Text style={styles.prodStock}>{item.stock > 0 ? 'In Stock' : 'Out of Stock'}</Text>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  filterContainer: { padding: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  row: { flexDirection: 'row', marginBottom: 10 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  chip: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, backgroundColor: '#eee', marginRight: 10 },
+  activeChip: { backgroundColor: '#007AFF' },
+  whiteText: { color: '#fff' },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5, padding: 8, width: '60%' },
+  resetBtn: { padding: 10 },
+  card: { flex: 0.5, padding: 10, margin: 5, borderWidth: 1, borderColor: '#eee', borderRadius: 10 },
+  img: { width: '100%', height: 120, resizeMode: 'contain' },
+  prodName: { fontWeight: 'bold', marginTop: 5 },
+  prodPrice: { color: 'green', marginVertical: 2 },
+  prodStock: { fontSize: 10, color: '#666' }
 });
