@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react'; // Make sure useState is imported!
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { apiFetch } from '../../api-to-front/client';
 import Footer from '../../components/footer';
 import Header from '../../components/header';
@@ -10,40 +10,55 @@ export default function OrdersScreen() {
   const { user, isLoggedIn, loading } = useAuth();
   const router = useRouter();
 
-  // ADDED THIS: The state to hold your orders
+  // State for orders
   const [orders, setOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
 
+  // FIX 1: Added the missing useEffect
   useEffect(() => {
-    if (!loading && !isLoggedIn) {
-      Text("User needs to be logged in to view orders. Click the button below to go to the login page.");
-      router.push('/login');
-      return;
-    }
-
-    // ADDED THIS: Fetch the orders once we know the user is logged in
+    // Only fetch if we are definitely logged in
     if (isLoggedIn) {
+      setOrdersLoading(true); // Reset loading state
       apiFetch('/api/orders')
         .then(data => setOrders(data.orders || []))
         .catch(err => console.error("Failed to fetch orders", err))
         .finally(() => setOrdersLoading(false));
     }
-  }, [isLoggedIn, loading]);
+  }, [isLoggedIn]); 
 
-  // If AuthContext is still loading
-  if (loading) return <ActivityIndicator size="large" style={{flex: 1}} />;
+  // 1. Handle Global Auth Loading (Initial App Load)
+  if (loading) {
+    return <ActivityIndicator size="large" style={{ flex: 1 }} />;
+  }
 
-  // If not logged in, return null while it redirects
-  if (!isLoggedIn) return null;
+  // 2. Handle "Not Logged In" - Show the Button (Removed the 'return null')
+  if (!isLoggedIn) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+        <Text style={{ marginBottom: 20, textAlign: 'center' }}>
+          User needs to be logged in to view orders. Click the button below to go to the login page.
+        </Text>
+        <TouchableOpacity 
+            style={styles.loginButton} 
+            onPress={() => router.push('/login')}
+        >
+          <Text style={styles.loginButtonText}>Go to Login</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
-  // If Auth is finished but we are still fetching orders
-  if (ordersLoading) return <ActivityIndicator size="large" style={{flex: 1}} />;
+  // 3. Handle Data Loading (Fetching Orders)
+  if (ordersLoading) {
+    return <ActivityIndicator size="large" style={{ flex: 1 }} />;
+  }
 
+  // 4. Render the Orders List
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <Header title="My Orders" />
       <FlatList
-        data={orders} // <-- This will now work perfectly!
+        data={orders}
         keyExtractor={(item) => item.orderId}
         ListEmptyComponent={<Text style={styles.empty}>No orders found.</Text>}
         ListFooterComponent={<Footer />}
@@ -65,13 +80,16 @@ export default function OrdersScreen() {
   );
 }
 
+// Basic styles (optional, but good practice)
 const styles = StyleSheet.create({
   empty: { textAlign: 'center', marginTop: 50, color: '#888' },
-  orderCard: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#eee', marginHorizontal: 10, marginTop: 10, backgroundColor: '#f9f9f9', borderRadius: 10 },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
+  orderCard: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
   orderId: { fontWeight: 'bold', fontSize: 16 },
-  status: { fontWeight: 'bold' },
-  date: { color: '#666', fontSize: 12, marginTop: 5 },
-  total: { fontSize: 18, fontWeight: 'bold', marginTop: 10, color: '#222' },
-  itemsCount: { fontSize: 12, color: '#888' }
+  status: { fontWeight: '600' },
+  date: { color: '#666', fontSize: 12, marginBottom: 5 },
+  total: { fontSize: 16, fontWeight: 'bold' },
+  itemsCount: { color: '#888', fontSize: 12, marginTop: 2 },
+  loginButton: { backgroundColor: '#007AFF', padding: 15, borderRadius: 8 },
+  loginButtonText: { color: '#fff', fontWeight: 'bold', textAlign: 'center' }
 });

@@ -14,6 +14,8 @@ export default function RootLayout() {
           {/* This automatically finds your index.tsx, cart.tsx, etc. */}
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="login" />
+          <Stack.Screen name="signup" />
+          <Stack.Screen name="account" />
           <Stack.Screen name="product/[id]" />
         </Stack>
       </CartProvider>

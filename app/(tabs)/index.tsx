@@ -79,7 +79,7 @@ export default function ProductListing() {
         keyExtractor={(item) => item._id}
         ListFooterComponent={<Footer />}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} onPress={() => router.push(`../productpage/${item._id}`)}>
+          <TouchableOpacity style={styles.card} onPress={() => router.push(`../product/${item._id}`)}>
             <Image source={{ uri: item.imageUrl }} style={styles.img} />
             <Text style={styles.prodName}>{item.name}</Text>
             <Text style={styles.prodPrice}>${item.price}</Text>
