@@ -12,10 +12,8 @@ export default function RootLayout() {
         {/* 3. The Stack (your screens) must be inside both */}
         <Stack screenOptions={{ headerShown: false }}>
           {/* This automatically finds your index.tsx, cart.tsx, etc. */}
-          <Stack.Screen name="index" />
+          <Stack.Screen name="(tabs)" />
           <Stack.Screen name="login" />
-          <Stack.Screen name="signup" />
-          <Stack.Screen name="orders" />
           <Stack.Screen name="product/[id]" />
         </Stack>
       </CartProvider>

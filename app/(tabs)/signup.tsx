@@ -68,7 +68,7 @@ export default function SignupScreen() {
         <Text style={styles.buttonText}>Sign Up</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.back()}>
+      <TouchableOpacity onPress={() => router.push('/login')}>
         <Text style={styles.link}>Already have an account? Login</Text>
       </TouchableOpacity>
     </ScrollView>

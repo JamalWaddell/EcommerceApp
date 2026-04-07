@@ -16,7 +16,8 @@ export default function OrdersScreen() {
 
   useEffect(() => {
     if (!loading && !isLoggedIn) {
-      router.replace('/login' as any);
+      Text("User needs to be logged in to view orders. Click the button below to go to the login page.");
+      router.push('/login');
       return;
     }
 
