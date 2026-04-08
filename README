@@ -1,0 +1,20 @@
+                            #################################
+                            TO RUN THIS PROGRAM WE MUST FIRST:
+
+1. Change the IP address found in the "client.js" file in the api-to-front folder
+   to your computer's IP address. To find your IP address on Windows, open Command 
+   Prompt and type "ipconfig". Your IP address is the IPv4 address. Copy and replace 
+   the IP in client.js, keeping the same port number.
+
+2. Open a terminal, cd to the root (frontend) folder and type: "npm install"
+
+3. Open a new terminal, cd to the backend folder, then run: "npm install"
+
+4. In the backend terminal run: "node index.js"
+   In the frontend terminal run: "npx expo start"
+
+5. Install the Expo Go app on your mobile device and scan the QR code. 
+   You can also use an Android/iOS emulator of your choice.
+
+                                        HAVE FUN !!
+                             #####################################    

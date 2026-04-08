@@ -1,8 +1,12 @@
+// signup.tsx is the screen for users to create an account.
+
+// Importing necessary modules and components
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
+// SignupScreen component that handles user registration functionality
 export default function SignupScreen() {
   const [form, setForm] = useState({
     first_name: '', last_name: '', email: '', phone: '', password: '', confirmPassword: ''
@@ -14,6 +18,7 @@ export default function SignupScreen() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
+  // Handles the signup process, including form validation and error handling
   const handleSignup = async () => {
     const { first_name, last_name, email, phone, password, confirmPassword } = form;
 
@@ -42,6 +47,7 @@ export default function SignupScreen() {
     }
   };
 
+  // Render the signup form with inputs for user details and a signup button
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Create Account</Text>
@@ -75,6 +81,7 @@ export default function SignupScreen() {
   );
 }
 
+// Styles for the SignupScreen component
 const styles = StyleSheet.create({
   container: { padding: 20, paddingTop: 60, backgroundColor: '#fff' },
   title: { fontSize: 28, fontWeight: 'bold', marginBottom: 30, textAlign: 'center' },

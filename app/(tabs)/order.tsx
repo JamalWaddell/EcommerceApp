@@ -1,78 +1,94 @@
+// order.tsx which displays the user's past orders and their details
+
+// Importing necessary modules and components
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react'; // Make sure useState is imported!
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { apiFetch } from '../../api-to-front/client';
-import Footer from '../../components/footer';
 import Header from '../../components/header';
 import { useAuth } from '../../context/AuthContext';
 
-export default function OrdersScreen() {
-  const { user, isLoggedIn, loading } = useAuth();
-  const router = useRouter();
+// Type definitions for Product, OrderItem, and Order
+type Product = { _id: string; name?: string; productName?: string; imageUrl: string; price: number };
+type OrderItem = { productId: string; quantity: number; product?: Product | null };
+type Order = { orderId: string; items: OrderItem[]; total: number; createdAt: string; status?: string };
 
-  // State for orders
-  const [orders, setOrders] = useState<any[]>([]);
+// OrdersScreen component that displays the user's past orders and their details
+export default function OrdersScreen() {
+  const { isLoggedIn, loading } = useAuth();
+  const router = useRouter();
+  const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
 
-  // FIX 1: Added the missing useEffect
+  // Fetches orders from the API and enriches them with product details
+  const fetchOrders = async () => {
+    setOrdersLoading(true);
+    apiFetch('/api/orders')
+      .then(async (data: { orders: Order[] }) =>
+        Promise.all(data.orders.map(async o => ({
+          ...o,
+          items: await Promise.all(o.items.map(async i => {
+            try { return { ...i, product: await apiFetch(`/api/products/${i.productId}`) }; }
+            catch { return { ...i, product: null }; }
+          }))
+        })))
+      )
+      .then(setOrders)
+      .catch(console.error)
+      .finally(() => setOrdersLoading(false));
+  };
+
   useEffect(() => {
-    // Only fetch if we are definitely logged in
-    if (isLoggedIn) {
-      setOrdersLoading(true); // Reset loading state
-      apiFetch('/api/orders')
-        .then(data => setOrders(data.orders || []))
-        .catch(err => console.error("Failed to fetch orders", err))
-        .finally(() => setOrdersLoading(false));
-    }
-  }, [isLoggedIn]); 
+    if (!isLoggedIn) return;
+    fetchOrders();
+  }, [isLoggedIn]);
 
-  // 1. Handle Global Auth Loading (Initial App Load)
-  if (loading) {
-    return <ActivityIndicator size="large" style={{ flex: 1 }} />;
-  }
+  if (loading || ordersLoading) return <ActivityIndicator size="large" style={{ flex: 1 }} />;
+  if (!isLoggedIn) return <View style={styles.center}><Text>Please log in to view your orders.</Text></View>;
 
-  // 2. Handle "Not Logged In" - Show the Button (Removed the 'return null')
-  if (!isLoggedIn) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-        <Text style={{ marginBottom: 20, textAlign: 'center' }}>
-          User needs to be logged in to view orders. Click the button below to go to the login page.
-        </Text>
-        <TouchableOpacity 
-            style={styles.loginButton} 
-            onPress={() => router.push('/login')}
-        >
-          <Text style={styles.loginButtonText}>Go to Login</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  // 3. Handle Data Loading (Fetching Orders)
-  if (ordersLoading) {
-    return <ActivityIndicator size="large" style={{ flex: 1 }} />;
-  }
-
-  // 4. Render the Orders List
+  // Render the orders list with details and status
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
       <Header title="My Orders" />
+
+      <TouchableOpacity onPress={fetchOrders} style={styles.refreshBtn}>
+        <Text style={styles.refreshText}>↻ Refresh Status</Text>
+      </TouchableOpacity>
+
       <FlatList
         data={orders}
-        keyExtractor={(item) => item.orderId}
+        keyExtractor={i => i.orderId}
+        contentContainerStyle={{ paddingBottom: 80 }}
         ListEmptyComponent={<Text style={styles.empty}>No orders found.</Text>}
-        ListFooterComponent={<Footer />}
         renderItem={({ item }) => (
-          <View style={styles.orderCard}>
-            <View style={styles.row}>
-              <Text style={styles.orderId}>{item.orderId}</Text>
-              <Text style={[styles.status, { color: item.status === 'Processing' ? 'orange' : 'green' }]}>
-                {item.status}
+          <View style={styles.card}>
+            <View style={styles.topRow}>
+              <Text style={styles.orderId}>Order: {item.orderId}</Text>
+              <Text style={[
+                styles.status,
+                item.status === 'Delivered' ? styles.delivered : styles.processing
+              ]}>
+                {item.status || 'Processing'}
               </Text>
             </View>
+            {item.items.map(i => (
+              <View key={i.productId} style={styles.row}>
+                <Image
+                  source={{
+                    uri: i.product?.imageUrl?.startsWith('http')
+                      ? i.product.imageUrl
+                      : `http://192.168.1.10:5000/images/${i.product?.imageUrl || ''}`
+                  }}
+                  style={styles.img}
+                />
+                <Text style={styles.name}>
+                  {i.product?.name || i.product?.productName || 'Unknown'}
+                </Text>
+                <Text style={styles.qty}>x{i.quantity}</Text>
+              </View>
+            ))}
             <Text style={styles.date}>{new Date(item.createdAt).toLocaleDateString()}</Text>
             <Text style={styles.total}>Total: ${item.total.toFixed(2)}</Text>
-            <Text style={styles.itemsCount}>{item.items.length} Items</Text>
           </View>
         )}
       />
@@ -80,16 +96,22 @@ export default function OrdersScreen() {
   );
 }
 
-// Basic styles (optional, but good practice)
+// Styles for the Orders screen
 const styles = StyleSheet.create({
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   empty: { textAlign: 'center', marginTop: 50, color: '#888' },
-  orderCard: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
+  card: { padding: 15, margin: 10, borderRadius: 10, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   orderId: { fontWeight: 'bold', fontSize: 16 },
-  status: { fontWeight: '600' },
-  date: { color: '#666', fontSize: 12, marginBottom: 5 },
-  total: { fontSize: 16, fontWeight: 'bold' },
-  itemsCount: { color: '#888', fontSize: 12, marginTop: 2 },
-  loginButton: { backgroundColor: '#007AFF', padding: 15, borderRadius: 8 },
-  loginButtonText: { color: '#fff', fontWeight: 'bold', textAlign: 'center' }
+  status: { fontWeight: 'bold', fontSize: 13 },
+  processing: { color: 'orange' },
+  delivered: { color: 'green' },
+  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, borderBottomWidth: 0.5, borderBottomColor: '#eee', paddingBottom: 5 },
+  img: { width: 45, height: 45, marginRight: 10, borderRadius: 5, backgroundColor: '#eee' },
+  name: { flex: 1, fontSize: 14 },
+  qty: { fontWeight: 'bold' },
+  date: { marginTop: 10, fontSize: 12, color: '#666' },
+  total: { marginTop: 5, fontWeight: 'bold', fontSize: 16 },
+  refreshBtn: { margin: 10, padding: 10, backgroundColor: 'green', borderRadius: 8, alignItems: 'center' },
+  refreshText: { color: '#fff', fontWeight: 'bold' },
 });

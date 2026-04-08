@@ -1,16 +1,18 @@
+// ProductListing.tsx for displaying list of products with filtering options
+
+// Importing necessary modules and components
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { apiFetch } from '../../api-to-front/client';
-import Footer from '../../components/footer';
 import Header from '../../components/header';
 
+// ProductListing component that fetches and displays products with filtering options
 export default function ProductListing() {
   const router = useRouter();
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
-  
-  // Filter States
+
   const [category, setCategory] = useState('All');
   const [maxPrice, setMaxPrice] = useState('');
   const [color, setColor] = useState('All');
@@ -30,6 +32,7 @@ export default function ProductListing() {
     } catch (e) { console.error(e); }
   };
 
+  // Filters for each category
   const applyFilters = () => {
     let temp = [...products];
     if (category !== 'All') temp = temp.filter(p => p.category === category);
@@ -38,52 +41,71 @@ export default function ProductListing() {
     setFilteredProducts(temp);
   };
 
+  // Reset filters to default values
   const resetFilters = () => {
     setCategory('All');
     setMaxPrice('');
     setColor('All');
   };
 
+  // Render the product listing with filters and navigation to product details
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <Header title="E-Store" />
-      
-      {/* Filters Section */}
+
+  {/*Filter options for category, color, and max price*/}
       <View style={styles.filterContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.row}>
           {['All', 'Smartphone', 'Tablet', 'Laptop'].map(cat => (
-            <TouchableOpacity key={cat} onPress={() => setCategory(cat)} 
-              style={[styles.chip, category === cat && styles.activeChip]}>
-              <Text style={category === cat ? styles.whiteText : {}}>{cat}</Text>
+            <TouchableOpacity
+              key={cat}
+              onPress={() => setCategory(cat)}
+              style={[styles.chip, category === cat && styles.activeChip]}
+            >
+              <Text style={category === cat ? styles.whiteText : {}}>
+                {cat}
+              </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
-        
+
         <View style={styles.inputRow}>
-          <TextInput 
-            placeholder="Max Price" 
-            keyboardType="numeric" 
+          <TextInput
+            placeholder="Max Price"
+            keyboardType="numeric"
             value={maxPrice}
             onChangeText={setMaxPrice}
             style={styles.input}
           />
           <TouchableOpacity onPress={resetFilters} style={styles.resetBtn}>
-            <Text style={{color: 'red'}}>Reset</Text>
+            <Text style={{ color: 'red' }}>Reset</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <FlatList 
+      {/* Renders all products in a grid style. This includes images details etc. Also checks products are in stock */}
+      <FlatList
         data={filteredProducts}
         numColumns={2}
         keyExtractor={(item) => item._id}
-        ListFooterComponent={<Footer />}
+        contentContainerStyle={{ flexGrow: 1 }}
+        columnWrapperStyle={{ justifyContent: 'space-between' }}
+        ListEmptyComponent={
+          <Text style={{ textAlign: 'center', marginTop: 50 }}>
+            No products found
+          </Text>
+        }
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} onPress={() => router.push(`../product/${item._id}`)}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push(`../product/${item._id}`)}
+          >
             <Image source={{ uri: item.imageUrl }} style={styles.img} />
             <Text style={styles.prodName}>{item.name}</Text>
             <Text style={styles.prodPrice}>${item.price}</Text>
-            <Text style={styles.prodStock}>{item.stock > 0 ? 'In Stock' : 'Out of Stock'}</Text>
+            <Text style={styles.prodStock}>
+              {item.stock > 0 ? 'In Stock' : 'Out of Stock'}
+            </Text>
           </TouchableOpacity>
         )}
       />
@@ -91,6 +113,7 @@ export default function ProductListing() {
   );
 }
 
+// Styles for the ProductListing screen
 const styles = StyleSheet.create({
   filterContainer: { padding: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
   row: { flexDirection: 'row', marginBottom: 10 },
@@ -104,5 +127,5 @@ const styles = StyleSheet.create({
   img: { width: '100%', height: 120, resizeMode: 'contain' },
   prodName: { fontWeight: 'bold', marginTop: 5 },
   prodPrice: { color: 'green', marginVertical: 2 },
-  prodStock: { fontSize: 10, color: '#666' }
+  prodStock: { fontSize: 10, color: '#666' },
 });
