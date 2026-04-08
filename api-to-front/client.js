@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Use your computer's IP for both. 
 // Note: If you use the Android Emulator, 10.0.2.2 also works, 
 // but the IP address works for EVERYTHING (Phone, Emulator, Simulator).
-const API_BASE = 'http://192.168.0.101:5000'; 
+const API_BASE = 'http://192.168.0.11:5000'; 
 
 export async function getAuthToken() {
   return await AsyncStorage.getItem('estore_token');
@@ -33,7 +33,8 @@ export async function apiFetch(path, options = {}) {
     // Ensure path starts with /
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
     
-    console.log(`Fetching: ${API_BASE}${cleanPath}`); // Helpful for debugging
+    // Log the full URL being fetched for debugging
+    console.log(`Fetching: ${API_BASE}${cleanPath}`); 
 
     const res = await fetch(`${API_BASE}${cleanPath}`, {
       ...options,

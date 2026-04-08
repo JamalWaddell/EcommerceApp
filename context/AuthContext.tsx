@@ -1,3 +1,4 @@
+// AuthContext.tsx is the context provider for authentication state and actions
 import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 // Make sure the path to your client file is correct
 import { apiFetch, setAuthToken } from '../api-to-front/client';
@@ -23,6 +24,7 @@ interface AuthContextType {
   fetchMe: () => Promise<void>;
 }
 
+// Create the actual context object with a default value of null
 const AuthContext = createContext<AuthContextType | null>(null);
 
 // 3. Define that 'children' is a React component
@@ -30,6 +32,7 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// 4. The AuthProvider component that wraps the app and provides auth state and actions
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -37,6 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const isLoggedIn = !!user;
 
+  // 5. Function to fetch the current user's info from the API and update state accordingly
   const fetchMe = async () => {
     setLoading(true);
     setError(null);
@@ -54,7 +58,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     fetchMe();
   }, []);
 
-  // Notice the ': any' - this tells TypeScript "I know what I'm doing, allow this data"
+  // 6. Function to handle user login, which calls the API and updates auth state
   const login = async ({ email, password }: any) => {
     setError(null);
     try {
@@ -71,6 +75,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  // 7. Function to handle user signup, which calls the API and updates auth state
   const signup = async (params: any) => {
     setError(null);
     try {
@@ -87,11 +92,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  // 8. Function to handle user logout, which clears the auth token and resets user state
   const logout = async () => {
     await setAuthToken(null);
     setUser(null);
   };
 
+  // 9. Memoize the context value to optimize performance and prevent unnecessary re-renders
   const value = useMemo(
     () => ({ user, isLoggedIn, loading, error, login, logout, signup, fetchMe }),
     [user, isLoggedIn, loading, error]
@@ -100,6 +107,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// 10. Custom hook to easily access the AuthContext in other components
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

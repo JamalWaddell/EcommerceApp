@@ -1,8 +1,12 @@
+// _layout.tsx is the root layout file for the Expo Router app. 
+// Basically, it wraps the entire app with necessary providers (like Auth and Cart)
+
 import { Stack } from 'expo-router';
 import 'react-native-reanimated';
 import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 
+// Root Layout - Wraps the entire app with necessary providers and defines the main navigation structure
 export default function RootLayout() {
   return (
     // 1. AuthProvider must be on the OUTSIDE (because Cart needs useAuth)
@@ -11,11 +15,9 @@ export default function RootLayout() {
       <CartProvider>
         {/* 3. The Stack (your screens) must be inside both */}
         <Stack screenOptions={{ headerShown: false }}>
-          {/* This automatically finds your index.tsx, cart.tsx, etc. */}
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="login" />
           <Stack.Screen name="signup" />
-          <Stack.Screen name="account" />
           <Stack.Screen name="product/[id]" />
         </Stack>
       </CartProvider>

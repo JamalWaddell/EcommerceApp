@@ -1,3 +1,6 @@
+// [id].tsx houses the details of the product e.g. images prices etc..
+
+// Importing necessary modules and components
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -6,17 +9,19 @@ import Header from '../../components/header';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 
+// Product Detail Page - Shows detailed info about a single product and allows adding to cart
 export default function ProductDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  
+  // Using Cart and Auth contexts to manage cart actions and user state
   const { addItem } = useCart();
   const { user, loading: authLoading } = useAuth();
-
+// State for product details and quantity selection
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
 
+// Fetch product details when component mounts or when 'id' changes
   useEffect(() => {
     setLoading(true);
     apiFetch(`/api/products/${id}`)
@@ -39,12 +44,14 @@ export default function ProductDetail() {
     }
   };
 
+// SAFE DECREMENT (Ensures quantity never goes below 1)
   const decrement = () => {
     if (quantity > 1) {
       setQuantity(prev => prev - 1);
     }
   };
 
+  //  Handle Add to Cart action with proper checks and user feedback
   const handleAddToCart = async () => {
     // Check if product actually loaded
     if (!product) return;
@@ -62,6 +69,7 @@ export default function ProductDetail() {
       return;
     }
 
+   // Try to add item to cart and provide feedback on success or failure
     try {
       await addItem(product._id, quantity);
       Alert.alert("Success", `${quantity} item(s) added!`, [
@@ -145,6 +153,7 @@ export default function ProductDetail() {
   );
 }
 
+//  Styles for the component
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   container: { padding: 20 },

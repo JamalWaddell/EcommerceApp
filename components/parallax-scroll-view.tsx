@@ -1,3 +1,6 @@
+// parallax-scroll-view.tsx is a component that implements a parallax scrolling effect
+
+// Importing necessary modules and components
 import type { PropsWithChildren, ReactElement } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
@@ -18,6 +21,7 @@ type Props = PropsWithChildren<{
   headerBackgroundColor: { dark: string; light: string };
 }>;
 
+// ParallaxScrollView component that creates a parallax scrolling effect for the header image
 export default function ParallaxScrollView({
   children,
   headerImage,
@@ -44,6 +48,7 @@ export default function ParallaxScrollView({
     };
   });
 
+  // Render the ScrollView with the parallax header and content
   return (
     <Animated.ScrollView
       ref={scrollRef}
@@ -62,6 +67,7 @@ export default function ParallaxScrollView({
   );
 }
 
+// Styles for the ParallaxScrollView component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

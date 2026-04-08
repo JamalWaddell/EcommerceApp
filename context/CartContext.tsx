@@ -1,3 +1,6 @@
+// context/CartContext.tsx
+
+// Defines the types for cart items and the context value
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '../api-to-front/client';
@@ -9,6 +12,7 @@ interface CartItem {
   quantity: number;
 }
 
+// 2. Define what the CartContext "provides" to the rest of the app
 interface CartContextType {
   items: CartItem[];
   loading: boolean;
@@ -20,10 +24,12 @@ interface CartContextType {
   refreshCart: () => Promise<void>;
 }
 
+// Create the actual context object with a default value of null
 const CartContext = createContext<CartContextType | null>(null);
 
 const localStorageKey = 'estore_cart';
 
+// 3. The CartProvider component that wraps the app and provides cart state and actions
 export function CartProvider({ children }: { children: ReactNode }) {
   const { isLoggedIn } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
@@ -49,6 +55,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Function to refresh cart items from the server or local storage based on login status
   const refreshCart = async () => {
     setLoading(true);
     setError(null);
@@ -93,10 +100,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     syncCart();
   }, [isLoggedIn]);
 
+  // Cart manipulation functions that handle both local and server state based on login
   const addItem = async (productId: string, quantity: number = 1) => {
     const existing = items.find((item) => item.productId === productId);
     const nextQuantity = (existing?.quantity ?? 0) + quantity;
-
+    // If user is logged in, update server cart. Otherwise, update local cart.
     if (isLoggedIn) {
       try {
         const data = await apiFetch('/api/cart', {
@@ -115,6 +123,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Update quantity or remove item if quantity is set to 0
   const updateQuantity = async (productId: string, quantity: number) => {
     if (quantity < 1) return removeItem(productId);
 
@@ -136,7 +145,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       await saveLocalCart(next);
     }
   };
-
+  // Remove item from cart
   const removeItem = async (productId: string) => {
     if (isLoggedIn) {
       try {
@@ -154,6 +163,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Clear the entire cart
   const clear = async () => {
     setItems([]);
     await saveLocalCart([]);
@@ -169,6 +179,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Memoize the context value to optimize performance
   const value = useMemo(
     () => ({ items, loading, error, addItem, updateQuantity, removeItem, clear, refreshCart }),
     [items, loading, error]
@@ -177,6 +188,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
+// 4. Custom hook to easily access the CartContext in other components
 export function useCart() {
   const context = useContext(CartContext);
   if (!context) {

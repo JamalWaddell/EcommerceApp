@@ -1,19 +1,25 @@
+// login.tsx is the screen for users.
+
+// Importing necessary modules and components
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
+// LoginScreen component that handles user login functionality
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
   const router = useRouter();
 
+  // Handles the login process, including form validation and error handling
   const handleLogin = async () => {
     if (!email || !password) {
       return Alert.alert("Error", "Please fill in all fields");
     }
 
+    // Attempt to log in and navigate to home on success, or show error on failure
     try {
       await login({ email, password });
       router.replace('/'); // Go to home after login
@@ -23,6 +29,7 @@ export default function LoginScreen() {
     }
   };
 
+  // Render the login form with email and password inputs, and a login button
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back</Text>
@@ -50,6 +57,7 @@ export default function LoginScreen() {
   );
 }
 
+// Styles for the LoginScreen component
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#fff' },
   title: { fontSize: 28, fontWeight: 'bold', marginBottom: 30, textAlign: 'center' },
