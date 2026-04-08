@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Use your computer's IP for both. 
 // Note: If you use the Android Emulator, 10.0.2.2 also works, 
 // but the IP address works for EVERYTHING (Phone, Emulator, Simulator).
-const API_BASE = 'http://192.168.0.11:5000'; 
+const API_BASE = 'http://192.168.0.101:5000'; 
 
 export async function getAuthToken() {
   return await AsyncStorage.getItem('estore_token');

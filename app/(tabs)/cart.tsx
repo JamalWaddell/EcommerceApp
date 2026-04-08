@@ -6,13 +6,16 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { apiFetch } from '../../api-to-front/client';
 import Header from '../../components/header';
+import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
-
 
 // CartScreen component  that actually displays items in the cart and allow checkout
 export default function CartScreen() {
   const { items, updateQuantity, removeItem, clear } = useCart();
   const router = useRouter();
+  
+  // ADDED: Get auth status
+  const { isLoggedIn, user } = useAuth(); 
 
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,16 +38,52 @@ export default function CartScreen() {
     else setLoading(false);
   }, [items]);
 
-  // Show loading indicator while fetching product details
-  if (loading) return <ActivityIndicator size="large" style={{ flex: 1 }} />;
+  // 1. CHECK: Is User Logged In?
+  if (!isLoggedIn) {
+    return (
+      <View style={styles.centered}>
+        <Header title="Your Cart" />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Text style={styles.emptyText}>You need to login to access the cart.</Text>
+          <TouchableOpacity style={styles.emptyButton} onPress={() => router.push('/login')}>
+            <Text style={styles.btnText}>Go to Login</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
-  // Calculate total price of items in the cart
+  // 2. CHECK: Is Loading Products?
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#fff' }}>
+        <Header title="Your Cart" />
+        <ActivityIndicator size="large" style={{ flex: 1 }} />
+      </View>
+    );
+  }
+
+  // 3. CHECK: Is Cart Empty?
+  if (items.length === 0) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#fff' }}>
+        <Header title="Your Cart" />
+        <View style={styles.centered}>
+          <Text style={styles.emptyText}>No items in cart currently.</Text>
+          <TouchableOpacity style={styles.emptyButton} onPress={() => router.replace('/')}>
+            <Text style={styles.btnText}>Start Shopping</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // Calculate total price
   const total = items.reduce((sum, item) => {
     const product = products.find(p => p._id === item.productId);
     return sum + (product ? product.price * item.quantity : 0);
   }, 0);
 
-  // Handle checkout process - create order and clear cart
   const handleCheckout = async () => {
     try {
       const data = await apiFetch('/api/orders', {
@@ -55,11 +94,11 @@ export default function CartScreen() {
       clear();
       router.replace('/');
     } catch (e) {
-      Alert.alert("Checkout Failed", "Please log in first.");
+      Alert.alert("Checkout Failed", "Please try again.");
     }
   };
 
-  // If cart is empty, show message
+  // 4. RENDER: Cart Items
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <Header title="Your Cart" />
@@ -111,8 +150,26 @@ export default function CartScreen() {
   );
 }
 
-// Styles for the Cart screen
 const styles = StyleSheet.create({
+  centered: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: '#fff' 
+  },
+  emptyText: { 
+    fontSize: 18, 
+    color: '#888', 
+    marginBottom: 20, 
+    textAlign: 'center' 
+  },
+  emptyButton: {
+    backgroundColor: '#007AFF', 
+    padding: 15, 
+    borderRadius: 10, 
+    width: '80%', 
+    alignItems: 'center'
+  },
   item: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#eee' },
   row: { flexDirection: 'row', alignItems: 'center' },
   img: { width: 60, height: 60, resizeMode: 'contain', borderRadius: 5, backgroundColor: '#f0f0f0' },
@@ -122,7 +179,7 @@ const styles = StyleSheet.create({
   qtyBtn: { fontSize: 24, paddingHorizontal: 15, backgroundColor: '#eee', borderRadius: 5 },
   qtyText: { fontSize: 18, marginHorizontal: 15 },
   id: { marginTop: 10, fontSize: 10, color: '#888' },
-  footer: { padding: 20, borderTopWidth: 1, borderTopColor: '#eee' },
+  footer: { padding: 20, borderTopWidth: 1, borderTopColor: '#eee', backgroundColor: '#fff' },
   total: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
   checkoutBtn: { backgroundColor: 'green', padding: 15, borderRadius: 10, alignItems: 'center' },
   btnText: { color: '#fff', fontWeight: 'bold' },
